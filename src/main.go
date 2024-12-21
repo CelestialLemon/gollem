@@ -6,8 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/MichaelMure/go-term-markdown"
+	"golang.org/x/term"
 	"io"
 	"net/http"
+	"os"
 )
 
 type Message struct {
@@ -98,6 +100,15 @@ func main() {
 	}
 	response := llm(*config, *prompt, *model)
 
-	printResult := markdown.Render(response, 80, 6)
+	terminalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
+
+	if err != nil {
+		fmt.Println("Couldn't get terminal width, using default width 80")
+		terminalWidth = 80
+	} else {
+		fmt.Println("terminalWidth: ", terminalWidth)
+	}
+
+	printResult := markdown.Render(response, terminalWidth, 6)
 	fmt.Println(string(printResult))
 }

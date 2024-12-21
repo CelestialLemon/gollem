@@ -10,6 +10,9 @@ import (
 type Config struct {
 	ApiKey     string
 	ApiBaseUrl string
+	ApiKey       string
+	ApiBaseUrl   string
+	DefaultModel string
 }
 
 func LoadConfig(path string) (*Config, error) {

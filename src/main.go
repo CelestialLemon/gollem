@@ -25,7 +25,7 @@ type ApiResponseBody struct {
 	} `json:"choices"`
 }
 
-func llm(config Config, prompt string) string {
+func llm(config Config, prompt string, model string) string {
 	// create request body
 	requestBody := ApiRequestBody{
 		Model: "qwen/qwen-2.5-coder-32b-instruct",
@@ -86,11 +86,12 @@ func main() {
 		panic(err)
 	}
 
-	prompt := os.Args[1]
+	prompt := flag.String("p", "Hello there", "Use this flag to pass the prompt")
+	model := flag.String("m", config.DefaultModel, "Use this flag to pass the model")
 
-	if len(prompt) == 0 {
-		panic("prompt is empty")
+	flag.Parse()
 	}
+	response := llm(*config, *prompt, *model)
 
 	response := llm(*config, prompt)
 	fmt.Println(response)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 type Message struct {
@@ -24,14 +25,14 @@ type ApiResponseBody struct {
 	} `json:"choices"`
 }
 
-func llm(config Config) string {
+func llm(config Config, prompt string) string {
 	// create request body
 	requestBody := ApiRequestBody{
 		Model: "qwen/qwen-2.5-coder-32b-instruct",
 		Messages: []Message{
 			{
 				Role:    "user",
-				Content: "What is the meaning of life?",
+				Content: prompt,
 			},
 		},
 	}
@@ -85,6 +86,12 @@ func main() {
 		panic(err)
 	}
 
-	response := llm(*config)
+	prompt := os.Args[1]
+
+	if len(prompt) == 0 {
+		panic("prompt is empty")
+	}
+
+	response := llm(*config, prompt)
 	fmt.Println(response)
 }

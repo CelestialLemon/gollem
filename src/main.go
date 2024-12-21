@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"github.com/MichaelMure/go-term-markdown"
 	"io"
 	"net/http"
-	"os"
 )
 
 type Message struct {
@@ -28,7 +29,7 @@ type ApiResponseBody struct {
 func llm(config Config, prompt string, model string) string {
 	// create request body
 	requestBody := ApiRequestBody{
-		Model: "qwen/qwen-2.5-coder-32b-instruct",
+		Model: model,
 		Messages: []Message{
 			{
 				Role:    "user",
@@ -90,9 +91,13 @@ func main() {
 	model := flag.String("m", config.DefaultModel, "Use this flag to pass the model")
 
 	flag.Parse()
+
+	// check if an alias exists for the current model name else use the literal name
+	if aliasValue, exists := (*config).ModelAlias[*model]; exists {
+		*model = aliasValue
 	}
 	response := llm(*config, *prompt, *model)
 
-	response := llm(*config, prompt)
-	fmt.Println(response)
+	printResult := markdown.Render(response, 80, 6)
+	fmt.Println(string(printResult))
 }

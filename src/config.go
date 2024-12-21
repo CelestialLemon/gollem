@@ -8,11 +8,10 @@ import (
 )
 
 type Config struct {
-	ApiKey     string
-	ApiBaseUrl string
 	ApiKey       string
 	ApiBaseUrl   string
 	DefaultModel string
+	ModelAlias   map[string]string
 }
 
 func LoadConfig(path string) (*Config, error) {

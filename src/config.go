@@ -16,7 +16,7 @@ type Config struct {
 
 func LoadConfig(path string) (*Config, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, fmt.Errorf("config file not found: %s", path)
+		return nil, fmt.Errorf("config.toml file not found at path : %s", path)
 	}
 
 	var config Config

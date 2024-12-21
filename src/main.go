@@ -28,6 +28,24 @@ type ApiResponseBody struct {
 	} `json:"choices"`
 }
 
+type ApiErrorResponseBody struct {
+	Error struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+var errorCodesMap = map[int]string{
+	400: "Bad Request (invalid or missing params, CORS)",
+	401: "Invalid credentials (OAuth session expired, disabled/invalid API key)",
+	402: "Your account or API key has insufficient credits. Add more credits and retry the request",
+	403: "Your chosen model requires moderation and your input was flagged",
+	408: "Your request timed out",
+	429: "You are being rate limited",
+	502: "Your chosen model is down or we received an invalid response from it",
+	503: "There is no available model provider that meets your routing requirements",
+}
+
 func llm(config Config, prompt string, model string) string {
 	// create request body
 	requestBody := ApiRequestBody{
@@ -75,9 +93,28 @@ func llm(config Config, prompt string, model string) string {
 		panic(err)
 	}
 
+	// try to extract response body as error
+	var apiErrrorResponseBody ApiErrorResponseBody
+	if err := json.Unmarshal(responseBody, &apiErrrorResponseBody); err != nil {
+		panic(err)
+	}
+
+	// if error code is defined then API has returned error
+	if apiErrrorResponseBody.Error.Code != 0 {
+		// recieved error
+		fmt.Println("ERROR ", apiErrrorResponseBody.Error.Code, " ", apiErrrorResponseBody.Error.Message)
+		fmt.Println("ERROR ", apiErrrorResponseBody.Error.Code, " ", errorCodesMap[apiErrrorResponseBody.Error.Code])
+		return ""
+	}
+
+	// try to extract responseBody as result
 	var apiResponseBody ApiResponseBody
 	if err := json.Unmarshal(responseBody, &apiResponseBody); err != nil {
 		panic(err)
+	}
+
+	if len(apiResponseBody.Choices) == 0 {
+		panic("Choices is empty")
 	}
 
 	return apiResponseBody.Choices[0].Message.Content
@@ -105,8 +142,6 @@ func main() {
 	if err != nil {
 		fmt.Println("Couldn't get terminal width, using default width 80")
 		terminalWidth = 80
-	} else {
-		fmt.Println("terminalWidth: ", terminalWidth)
 	}
 
 	printResult := markdown.Render(response, terminalWidth, 6)
